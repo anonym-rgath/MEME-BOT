@@ -1,19 +1,12 @@
 from __future__ import annotations
 from typing import Protocol
 
+from memebot.replicate_io import first_url
+
 
 class FaceSwapProvider(Protocol):
     def swap_image(self, target_path: str, face_path: str) -> str: ...
     def swap_video(self, target_path: str, face_path: str) -> str: ...
-
-
-def _first_url(output) -> str:
-    """Replicate returns a str, a list, or a file-like object with .url."""
-    if isinstance(output, list):
-        output = output[0]
-    if isinstance(output, str):
-        return output
-    return getattr(output, "url", str(output))
 
 
 class ReplicateProvider:
@@ -35,7 +28,7 @@ class ReplicateProvider:
                 model,
                 input={"input_image": target, "swap_image": face},
             )
-        return _first_url(output)
+        return first_url(output)
 
     def swap_image(self, target_path: str, face_path: str) -> str:
         return self._run(self._image_model, target_path, face_path)
