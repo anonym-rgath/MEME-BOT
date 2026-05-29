@@ -11,6 +11,7 @@ from memebot.config import Settings
 from memebot.faces.library import FaceLibrary
 from memebot.faceswap.provider import FaceSwapProvider
 from memebot.textremove.provider import TextRemovalProvider
+from memebot.giphy.client import GiphyClient
 from memebot.renderer.images import add_text_to_image
 from memebot.renderer.videos import add_text_to_video
 from memebot.bot.state import SessionStore
@@ -22,7 +23,9 @@ HELP_TEXT = (
     "• /text Oben | Unten — Text aufs Bild/Video\n"
     "• /face <Name> — Gesicht tauschen (Bild)\n"
     "• /clean — Text entfernen (Bild)\n"
-    "• /recaption Oben | Unten — säubern + neu betexten (Bild)\n\n"
+    "• /recaption Oben | Unten — säubern + neu betexten (Bild)\n"
+    "• /gif <Begriff> — GIF von GIPHY suchen\n"
+    "• /meme — zufälliges Meme-GIF\n\n"
     "Schick den Befehl als Bildunterschrift mit, oder als Nachricht zum "
     "zuletzt gesendeten Bild."
 )
@@ -35,12 +38,14 @@ class Handlers:
         faces: FaceLibrary,
         swapper: FaceSwapProvider,
         text_remover: TextRemovalProvider,
+        giphy: GiphyClient | None = None,
         store: SessionStore | None = None,
     ):
         self.s = settings
         self.faces = faces
         self.swapper = swapper
         self.text_remover = text_remover
+        self.giphy = giphy
         self.store = store or SessionStore()
 
     # --- guards -------------------------------------------------------
@@ -129,6 +134,38 @@ class Handlers:
         if sess.media_path is None:
             return await msg.reply_text("📷 Schick mir zuerst ein Bild.")
         await self._run_command(msg.chat_id, sess, parsed, ctx)
+
+    async def on_gif(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        if not self._allowed(update):
+            return
+        msg = update.message
+        if self.giphy is None:
+            return await msg.reply_text("🎬 GIPHY ist nicht konfiguriert (API-Key fehlt).")
+        parts = msg.text.split(maxsplit=1)
+        term = parts[1].strip() if len(parts) > 1 else ""
+        if not term:
+            return await msg.reply_text("Usage: /gif <Begriff>")
+        try:
+            url = await asyncio.to_thread(self.giphy.search, term)
+        except Exception:
+            url = None
+        if not url:
+            return await msg.reply_text("🤷 Nichts gefunden, versuch's anders.")
+        await ctx.bot.send_animation(msg.chat_id, animation=url)
+
+    async def on_meme(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        if not self._allowed(update):
+            return
+        msg = update.message
+        if self.giphy is None:
+            return await msg.reply_text("🎬 GIPHY ist nicht konfiguriert (API-Key fehlt).")
+        try:
+            url = await asyncio.to_thread(self.giphy.random_meme)
+        except Exception:
+            url = None
+        if not url:
+            return await msg.reply_text("🤷 Gerade kein Meme bekommen, versuch's nochmal.")
+        await ctx.bot.send_animation(msg.chat_id, animation=url)
 
     async def _run_command(self, chat_id, sess, parsed, ctx):
         if parsed.error:

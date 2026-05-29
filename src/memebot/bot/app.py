@@ -10,6 +10,7 @@ from memebot.faces.library import FaceLibrary
 from memebot.faceswap.provider import ReplicateProvider
 from memebot.textremove.provider import ReplicateTextRemover
 from memebot.bot.handlers import Handlers
+from memebot.giphy.client import GiphyClient
 
 log = logging.getLogger(__name__)
 
@@ -46,11 +47,13 @@ def build_application(settings: Settings) -> Application:
         image_key=settings.text_removal_image_key,
         prompt_key=settings.text_removal_prompt_key,
     )
+    giphy = GiphyClient(settings.giphy_api_key) if settings.giphy_api_key else None
     handlers = Handlers(
         settings=settings,
         faces=FaceLibrary(settings.data_dir),
         swapper=swapper,
         text_remover=text_remover,
+        giphy=giphy,
     )
 
     app = Application.builder().token(settings.telegram_bot_token).build()
@@ -58,6 +61,8 @@ def build_application(settings: Settings) -> Application:
     app.add_handler(CommandHandler("help", handlers.help))
     app.add_handler(CommandHandler("skip", handlers.on_text))
     app.add_handler(CommandHandler(["text", "face", "clean", "recaption"], handlers.on_command))
+    app.add_handler(CommandHandler("gif", handlers.on_gif))
+    app.add_handler(CommandHandler("meme", handlers.on_meme))
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO, handlers.on_media))
     app.add_handler(CallbackQueryHandler(handlers.on_button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.on_text))

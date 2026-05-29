@@ -36,6 +36,8 @@ caption or as a follow-up message to the last image you sent:
 - `/face <Name>` — swap a saved face (image)
 - `/clean` — remove text (image)
 - `/recaption Oben | Unten` — clean then add new text (image)
+- `/gif <term>` — search a GIF on GIPHY
+- `/meme` — random meme GIF
 - `/help` — show this list
 
 ## Tests
