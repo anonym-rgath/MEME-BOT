@@ -7,6 +7,8 @@ def action_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("📝 Text hinzufügen", callback_data="action:text")],
         [InlineKeyboardButton("🔁 Gesicht tauschen", callback_data="action:face")],
         [InlineKeyboardButton("✨ Beides", callback_data="action:both")],
+        [InlineKeyboardButton("🧹 Text entfernen", callback_data="action:clean")],
+        [InlineKeyboardButton("🆕 Vorlage neu betexten", callback_data="action:recaption")],
         [InlineKeyboardButton("❌ Abbrechen", callback_data="action:cancel")],
     ])
 
