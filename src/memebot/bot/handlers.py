@@ -11,7 +11,7 @@ from memebot.config import Settings
 from memebot.faces.library import FaceLibrary
 from memebot.faceswap.provider import FaceSwapProvider
 from memebot.renderer.images import add_text_to_image
-from memebot.renderer.videos import add_text_to_video, probe_duration
+from memebot.renderer.videos import add_text_to_video
 from memebot.bot.state import SessionStore
 from memebot.bot.keyboards import action_keyboard, faces_keyboard
 
@@ -177,12 +177,14 @@ class Handlers:
             # 1) face swap (cloud) if requested — images only in v1
             if sess.action in ("face", "both") and sess.chosen_face:
                 face_path = self.faces.get_path(
-                    self._user_for_chat(sess, chat_id), sess.chosen_face)
+                    self._user_for_chat(chat_id), sess.chosen_face)
+                if face_path is None:
+                    raise RuntimeError("Gewähltes Gesicht nicht gefunden.")
                 swapped = await asyncio.to_thread(
                     self._swap, current, face_path, sess.is_video)
                 local = self._tmp(".mp4" if sess.is_video else ".jpg")
                 temp_files.append(local)
-                urllib.request.urlretrieve(swapped, local)
+                await asyncio.to_thread(urllib.request.urlretrieve, swapped, local)
                 current = local
             # 2) text overlay (local) if requested
             if sess.action in ("text", "both") and (sess.top_text or sess.bottom_text):
@@ -217,6 +219,6 @@ class Handlers:
         return self.swapper.swap_image(target, face)
 
     @staticmethod
-    def _user_for_chat(sess, chat_id):
+    def _user_for_chat(chat_id):
         # In private chats chat_id == user_id, which is what the face library uses.
         return chat_id
