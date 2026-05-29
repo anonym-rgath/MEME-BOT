@@ -27,6 +27,21 @@ def _draw_centered(draw, text, font, img_w, y, stroke=2):
     )
 
 
+def draw_meme_text(image: "Image.Image", top: str | None, bottom: str | None) -> None:
+    """Draw classic white/black-outline meme text top/bottom onto `image` in place."""
+    draw = ImageDraw.Draw(image)
+    font = _load_font(max(16, image.height // 10))
+    if top:
+        _draw_centered(draw, top.upper(), font, image.width, y=image.height * 0.03)
+    if bottom:
+        bbox = draw.textbbox((0, 0), bottom.upper(), font=font, stroke_width=2)
+        text_h = bbox[3] - bbox[1]
+        _draw_centered(
+            draw, bottom.upper(), font, image.width,
+            y=image.height - text_h - image.height * 0.06,
+        )
+
+
 def add_text_to_image(
     src_path: str,
     out_path: str,
@@ -36,18 +51,6 @@ def add_text_to_image(
     """Draw classic meme top/bottom text on an image. Returns out_path."""
     with Image.open(src_path) as im:
         im = im.convert("RGB")
-        draw = ImageDraw.Draw(im)
-        font_size = max(16, im.height // 10)
-        font = _load_font(font_size)
-
-        if top:
-            _draw_centered(draw, top.upper(), font, im.width, y=im.height * 0.03)
-        if bottom:
-            bbox = draw.textbbox((0, 0), bottom.upper(), font=font, stroke_width=2)
-            text_h = bbox[3] - bbox[1]
-            _draw_centered(
-                draw, bottom.upper(), font, im.width,
-                y=im.height - text_h - im.height * 0.06,
-            )
+        draw_meme_text(im, top, bottom)
         im.save(out_path, format="JPEG", quality=90)
     return out_path
