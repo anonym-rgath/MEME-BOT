@@ -108,6 +108,7 @@ class Handlers:
             tg_file = await msg.photo[-1].get_file()
             sess.media_path = self._tmp(".jpg")
             sess.is_video = False
+            sess.is_animation = False
         elif msg.video:
             if msg.video.duration and msg.video.duration > self.s.max_video_seconds:
                 return await msg.reply_text(
@@ -115,6 +116,15 @@ class Handlers:
             tg_file = await msg.video.get_file()
             sess.media_path = self._tmp(".mp4")
             sess.is_video = True
+            sess.is_animation = False
+        elif msg.animation:
+            if msg.animation.duration and msg.animation.duration > self.s.max_video_seconds:
+                return await msg.reply_text(
+                    f"⏱ GIF zu lang (max {self.s.max_video_seconds}s).")
+            tg_file = await msg.animation.get_file()
+            sess.media_path = self._tmp(".mp4")
+            sess.is_video = True
+            sess.is_animation = True
         else:
             return
 
@@ -339,7 +349,10 @@ class Handlers:
                     add_text_to_image(current, out, sess.top_text, sess.bottom_text)
                 current = out
             # 4) send back
-            if sess.is_video:
+            if sess.is_animation:
+                with open(current, "rb") as f:
+                    await ctx.bot.send_animation(chat_id, animation=f)
+            elif sess.is_video:
                 with open(current, "rb") as f:
                     await ctx.bot.send_video(chat_id, video=f)
             else:

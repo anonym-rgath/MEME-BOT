@@ -6,6 +6,7 @@ from dataclasses import dataclass
 class Session:
     media_path: str | None = None
     is_video: bool = False
+    is_animation: bool = False  # GIF/animation → send result via send_animation
     action: str | None = None          # "text" | "face" | "both" | "clean" | "recaption"
     awaiting: str | None = None        # "top_text" | "bottom_text" | "face_name"
     top_text: str | None = None
