@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class Session:
     media_path: str | None = None
     is_video: bool = False
-    action: str | None = None          # "text" | "face" | "both"
+    action: str | None = None          # "text" | "face" | "both" | "clean" | "recaption"
     awaiting: str | None = None        # "top_text" | "bottom_text" | "face_name"
     top_text: str | None = None
     bottom_text: str | None = None

@@ -222,7 +222,7 @@ class Handlers:
                 else:
                     add_text_to_image(current, out, sess.top_text, sess.bottom_text)
                 current = out
-            # 3) send back
+            # 4) send back
             if sess.is_video:
                 with open(current, "rb") as f:
                     await ctx.bot.send_video(chat_id, video=f)
