@@ -8,7 +8,7 @@ class Session:
     is_video: bool = False
     is_animation: bool = False  # GIF/animation → send result via send_animation
     action: str | None = None          # "text" | "face" | "both" | "clean" | "recaption"
-    awaiting: str | None = None        # "top_text" | "bottom_text" | "face_name"
+    awaiting: str | None = None        # "top_text" | "bottom_text" | "face_name" | "face_name_photo"
     top_text: str | None = None
     bottom_text: str | None = None
     chosen_face: str | None = None

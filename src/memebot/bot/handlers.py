@@ -110,6 +110,13 @@ class Handlers:
         self._discard_session_media(sess)
         sess.pending_face_path = None
 
+        # size guardrail
+        media = msg.photo[-1] if msg.photo else (msg.video or msg.animation)
+        size = getattr(media, "file_size", None)
+        if size and size > self.s.max_file_mb * 1024 * 1024:
+            return await msg.reply_text(
+                f"📦 Datei zu groß (max {self.s.max_file_mb} MB).")
+
         if msg.photo:
             tg_file = await msg.photo[-1].get_file()
             sess.media_path = self._tmp(".jpg")
