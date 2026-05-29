@@ -80,6 +80,8 @@ def build_application(settings: Settings) -> Application:
         client=client,
         image_model=_pinned(client, settings.image_model),
         video_model=settings.video_model,  # bare ref; video face-swap is gated off in v1
+        faceswap_prompt=settings.faceswap_prompt,
+        images_key=settings.faceswap_images_key,
     )
     text_remover = ReplicateTextRemover(
         client=client,

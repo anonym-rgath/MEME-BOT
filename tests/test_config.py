@@ -45,6 +45,20 @@ def test_text_removal_defaults_and_override():
     assert s2.text_removal_image_key == "image"
     assert s2.text_removal_prompt_key == "instruction"
 
+def test_faceswap_defaults_and_override():
+    base = {"TELEGRAM_BOT_TOKEN": "t", "REPLICATE_API_TOKEN": "r"}
+    s = Settings.from_env(base)
+    assert s.image_model == "google/nano-banana"
+    assert s.faceswap_images_key == "image_input"
+    assert "face" in s.faceswap_prompt.lower()
+    s2 = Settings.from_env({**base,
+        "REPLICATE_IMAGE_MODEL": "owner/model",
+        "FACESWAP_PROMPT": "swap it",
+        "FACESWAP_IMAGES_KEY": "image_urls"})
+    assert s2.image_model == "owner/model"
+    assert s2.faceswap_prompt == "swap it"
+    assert s2.faceswap_images_key == "image_urls"
+
 def test_giphy_key_default_and_override():
     base = {"TELEGRAM_BOT_TOKEN": "t", "REPLICATE_API_TOKEN": "r"}
     assert Settings.from_env(base).giphy_api_key == ""

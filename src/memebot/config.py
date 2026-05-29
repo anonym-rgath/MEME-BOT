@@ -8,8 +8,14 @@ class Settings:
     telegram_bot_token: str
     allowed_users: frozenset[int]
     replicate_api_token: str
-    image_model: str = "cdingram/face-swap"
+    image_model: str = "google/nano-banana"
     video_model: str = "arabyai-replicate/roop_face_swap"
+    faceswap_prompt: str = (
+        "Replace the face of the person in the first image with the face of the "
+        "person in the second image. Keep the first image's pose, body, clothing, "
+        "lighting, background and style unchanged. Make it look natural and photorealistic."
+    )
+    faceswap_images_key: str = "image_input"
     text_removal_model: str = "black-forest-labs/flux-kontext-pro"
     text_removal_prompt: str = (
         "Remove all text, letters, captions and watermarks from the image. "
@@ -43,6 +49,8 @@ class Settings:
             replicate_api_token=required("REPLICATE_API_TOKEN"),
             image_model=env.get("REPLICATE_IMAGE_MODEL", cls.image_model),
             video_model=env.get("REPLICATE_VIDEO_MODEL", cls.video_model),
+            faceswap_prompt=env.get("FACESWAP_PROMPT", cls.faceswap_prompt),
+            faceswap_images_key=env.get("FACESWAP_IMAGES_KEY", cls.faceswap_images_key),
             text_removal_model=env.get("REPLICATE_TEXT_REMOVAL_MODEL", cls.text_removal_model),
             text_removal_prompt=env.get("TEXT_REMOVAL_PROMPT", cls.text_removal_prompt),
             text_removal_image_key=env.get("REPLICATE_TEXT_REMOVAL_IMAGE_KEY", cls.text_removal_image_key),
