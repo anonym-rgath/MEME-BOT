@@ -17,6 +17,7 @@ On the Pi (Docker) — use the helper scripts:
 - `./scripts/start.sh` — build + start the container (checks Docker and `.env`)
 - `./scripts/stop.sh` — stop the container
 - `./scripts/logs.sh` — follow the bot logs (Ctrl+C to exit)
+- `./scripts/redeploy.sh` — `git pull --ff-only` + rebuild + restart (one-shot update)
 
 Equivalent raw commands: `docker compose up -d --build` / `docker compose down` / `docker compose logs -f`.
 
