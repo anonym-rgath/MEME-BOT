@@ -20,6 +20,7 @@ class Settings:
     max_video_seconds: int = 15
     max_file_mb: int = 20
     data_dir: str = "./data"
+    giphy_api_key: str = ""
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> "Settings":
@@ -48,6 +49,7 @@ class Settings:
             max_video_seconds=int(env.get("MAX_VIDEO_SECONDS", cls.max_video_seconds)),
             max_file_mb=int(env.get("MAX_FILE_MB", cls.max_file_mb)),
             data_dir=env.get("DATA_DIR", cls.data_dir),
+            giphy_api_key=env.get("GIPHY_API_KEY", cls.giphy_api_key),
         )
 
     def is_allowed(self, user_id: int) -> bool:

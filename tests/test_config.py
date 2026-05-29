@@ -44,3 +44,9 @@ def test_text_removal_defaults_and_override():
     assert s2.text_removal_prompt == "erase text"
     assert s2.text_removal_image_key == "image"
     assert s2.text_removal_prompt_key == "instruction"
+
+def test_giphy_key_default_and_override():
+    base = {"TELEGRAM_BOT_TOKEN": "t", "REPLICATE_API_TOKEN": "r"}
+    assert Settings.from_env(base).giphy_api_key == ""
+    s = Settings.from_env({**base, "GIPHY_API_KEY": "gk"})
+    assert s.giphy_api_key == "gk"
