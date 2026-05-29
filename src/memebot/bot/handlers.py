@@ -146,12 +146,14 @@ class Handlers:
         if not term:
             return await msg.reply_text("Usage: /gif <Begriff>")
         try:
-            url = await asyncio.to_thread(self.giphy.search, term)
+            urls = await asyncio.to_thread(
+                self.giphy.search, term, self.s.giphy_result_count)
         except Exception:
-            url = None
-        if not url:
+            urls = []
+        if not urls:
             return await msg.reply_text("🤷 Nichts gefunden, versuch's anders.")
-        await ctx.bot.send_animation(msg.chat_id, animation=url)
+        for url in urls:
+            await ctx.bot.send_animation(msg.chat_id, animation=url)
 
     async def on_meme(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if not self._allowed(update):

@@ -50,3 +50,8 @@ def test_giphy_key_default_and_override():
     assert Settings.from_env(base).giphy_api_key == ""
     s = Settings.from_env({**base, "GIPHY_API_KEY": "gk"})
     assert s.giphy_api_key == "gk"
+
+def test_giphy_result_count_default_and_override():
+    base = {"TELEGRAM_BOT_TOKEN": "t", "REPLICATE_API_TOKEN": "r"}
+    assert Settings.from_env(base).giphy_result_count == 3
+    assert Settings.from_env({**base, "GIPHY_RESULT_COUNT": "5"}).giphy_result_count == 5
