@@ -15,6 +15,17 @@ from memebot.renderer.images import add_text_to_image
 from memebot.renderer.videos import add_text_to_video
 from memebot.bot.state import SessionStore
 from memebot.bot.keyboards import action_keyboard, faces_keyboard
+from memebot.bot.commands import parse_command
+
+HELP_TEXT = (
+    "🤖 Du kannst Buttons nutzen oder Befehle:\n"
+    "• /text Oben | Unten — Text aufs Bild/Video\n"
+    "• /face <Name> — Gesicht tauschen (Bild)\n"
+    "• /clean — Text entfernen (Bild)\n"
+    "• /recaption Oben | Unten — säubern + neu betexten (Bild)\n\n"
+    "Schick den Befehl als Bildunterschrift mit, oder als Nachricht zum "
+    "zuletzt gesendeten Bild."
+)
 
 
 class Handlers:
@@ -58,8 +69,13 @@ class Handlers:
             return await update.message.reply_text("⛔ Nicht freigeschaltet.")
         await update.message.reply_text(
             "👋 Schick mir ein Bild oder Video, dann wählst du per Buttons, "
-            "was ich daraus machen soll."
+            "was ich daraus machen soll.\n\n" + HELP_TEXT
         )
+
+    async def help(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        if not self._allowed(update):
+            return
+        await update.message.reply_text(HELP_TEXT)
 
     async def on_media(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if not self._allowed(update):
@@ -94,7 +110,43 @@ class Handlers:
             sess.awaiting = "face_name"
             return await msg.reply_text("Wie soll dieses Gesicht heißen?")
 
+        # Caption command (e.g. "/text Oben | Unten") → run directly, skip buttons.
+        if msg.caption:
+            parsed = parse_command(msg.caption)
+            if parsed is not None:
+                return await self._run_command(chat_id, sess, parsed, ctx)
+
         await msg.reply_text("Was soll ich machen?", reply_markup=action_keyboard())
+
+    async def on_command(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        if not self._allowed(update):
+            return
+        msg = update.message
+        sess = self.store.get(msg.chat_id)
+        parsed = parse_command(msg.text)
+        if parsed is None:
+            return
+        if sess.media_path is None:
+            return await msg.reply_text("📷 Schick mir zuerst ein Bild.")
+        await self._run_command(msg.chat_id, sess, parsed, ctx)
+
+    async def _run_command(self, chat_id, sess, parsed, ctx):
+        if parsed.error:
+            return await ctx.bot.send_message(chat_id, parsed.error)
+        # v1: cloud edits (face swap, text removal) are image-only.
+        if sess.is_video and parsed.action in ("face", "clean", "recaption"):
+            self._discard_session_media(sess)
+            self.store.clear(chat_id)
+            return await ctx.bot.send_message(
+                chat_id,
+                "🪄 Cloud-Bearbeitung (Gesicht tauschen / Text entfernen) für "
+                "Videos kommt später. Bei Videos geht aktuell nur /text.")
+        sess.action = parsed.action
+        sess.top_text = parsed.top
+        sess.bottom_text = parsed.bottom
+        sess.chosen_face = parsed.face
+        await ctx.bot.send_message(chat_id, "⏳ Verarbeite…")
+        await self._process_and_send(chat_id, sess, ctx)
 
     async def on_button(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if not self._allowed(update):

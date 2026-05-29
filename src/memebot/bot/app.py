@@ -32,7 +32,9 @@ def build_application(settings: Settings) -> Application:
 
     app = Application.builder().token(settings.telegram_bot_token).build()
     app.add_handler(CommandHandler("start", handlers.start))
+    app.add_handler(CommandHandler("help", handlers.help))
     app.add_handler(CommandHandler("skip", handlers.on_text))
+    app.add_handler(CommandHandler(["text", "face", "clean", "recaption"], handlers.on_command))
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO, handlers.on_media))
     app.add_handler(CallbackQueryHandler(handlers.on_button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.on_text))

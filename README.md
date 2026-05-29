@@ -27,5 +27,16 @@ set -a && . ./.env && set +a
 PYTHONPATH=src python -m memebot.main
 ```
 
+## Commands
+
+Besides the buttons, you can drive the bot with commands — either as an image
+caption or as a follow-up message to the last image you sent:
+
+- `/text Oben | Unten` — add meme text (image or video)
+- `/face <Name>` — swap a saved face (image)
+- `/clean` — remove text (image)
+- `/recaption Oben | Unten` — clean then add new text (image)
+- `/help` — show this list
+
 ## Tests
 `PYTHONPATH=src pytest -v`
