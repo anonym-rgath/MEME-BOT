@@ -27,3 +27,14 @@ def test_is_allowed():
     })
     assert s.is_allowed(111) is True
     assert s.is_allowed(999) is False
+
+def test_text_removal_defaults_and_override():
+    base = {"TELEGRAM_BOT_TOKEN": "t", "REPLICATE_API_TOKEN": "r"}
+    s = Settings.from_env(base)
+    assert s.text_removal_model == "adirik/inst-inpaint"
+    assert s.text_removal_prompt == "remove all the text"
+    s2 = Settings.from_env({**base,
+        "REPLICATE_TEXT_REMOVAL_MODEL": "owner/model",
+        "TEXT_REMOVAL_PROMPT": "erase text"})
+    assert s2.text_removal_model == "owner/model"
+    assert s2.text_removal_prompt == "erase text"
