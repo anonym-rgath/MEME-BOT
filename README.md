@@ -12,8 +12,20 @@ Long-polling, runs as a Docker container (e.g. on the Raspberry Pi).
 5. Verify the Replicate model slugs in `.env` are current (replicate.com).
 
 ## Run
-- Local: `PYTHONPATH=src python -m memebot.main`
-- Docker: `docker compose up -d --build`
+
+On the Pi (Docker) — use the helper scripts:
+- `./scripts/start.sh` — build + start the container (checks Docker and `.env`)
+- `./scripts/stop.sh` — stop the container
+- `./scripts/logs.sh` — follow the bot logs (Ctrl+C to exit)
+
+Equivalent raw commands: `docker compose up -d --build` / `docker compose down` / `docker compose logs -f`.
+
+Local (without Docker), the env vars must be in your shell — the app reads the
+process environment, not `.env` directly:
+```bash
+set -a && . ./.env && set +a
+PYTHONPATH=src python -m memebot.main
+```
 
 ## Tests
 `PYTHONPATH=src pytest -v`
