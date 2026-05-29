@@ -7,6 +7,7 @@ from telegram.ext import (
 from memebot.config import Settings
 from memebot.faces.library import FaceLibrary
 from memebot.faceswap.provider import ReplicateProvider
+from memebot.textremove.provider import ReplicateTextRemover
 from memebot.bot.handlers import Handlers
 
 
@@ -17,10 +18,16 @@ def build_application(settings: Settings) -> Application:
         image_model=settings.image_model,
         video_model=settings.video_model,
     )
+    text_remover = ReplicateTextRemover(
+        client=client,
+        model=settings.text_removal_model,
+        instruction=settings.text_removal_prompt,
+    )
     handlers = Handlers(
         settings=settings,
         faces=FaceLibrary(settings.data_dir),
         swapper=swapper,
+        text_remover=text_remover,
     )
 
     app = Application.builder().token(settings.telegram_bot_token).build()

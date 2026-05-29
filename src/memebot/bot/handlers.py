@@ -10,6 +10,7 @@ from telegram.ext import ContextTypes
 from memebot.config import Settings
 from memebot.faces.library import FaceLibrary
 from memebot.faceswap.provider import FaceSwapProvider
+from memebot.textremove.provider import TextRemovalProvider
 from memebot.renderer.images import add_text_to_image
 from memebot.renderer.videos import add_text_to_video
 from memebot.bot.state import SessionStore
@@ -22,11 +23,13 @@ class Handlers:
         settings: Settings,
         faces: FaceLibrary,
         swapper: FaceSwapProvider,
+        text_remover: TextRemovalProvider,
         store: SessionStore | None = None,
     ):
         self.s = settings
         self.faces = faces
         self.swapper = swapper
+        self.text_remover = text_remover
         self.store = store or SessionStore()
 
     # --- guards -------------------------------------------------------
@@ -109,20 +112,22 @@ class Handlers:
 
         if data.startswith("action:"):
             sess.action = data.split(":", 1)[1]
-            # v1: video face swap is deferred — videos support text only.
-            if sess.is_video and sess.action in ("face", "both"):
+            # v1: cloud edits (face swap, text removal) are image-only.
+            if sess.is_video and sess.action in ("face", "both", "clean", "recaption"):
                 self._discard_session_media(sess)
                 self.store.clear(chat_id)
                 return await q.edit_message_text(
-                    "🔁 Gesichtstausch für Videos kommt später. "
-                    "Bei Videos geht aktuell nur Text — schick ein Bild für "
-                    "den Gesichtstausch.")
-            if sess.action in ("text", "both"):
+                    "🪄 Cloud-Bearbeitung (Gesicht tauschen / Text entfernen) für "
+                    "Videos kommt später. Bei Videos geht aktuell nur Text "
+                    "hinzufügen — schick ein Bild für die anderen Funktionen.")
+            if sess.action in ("text", "both", "recaption"):
                 sess.awaiting = "top_text"
                 return await q.edit_message_text(
                     "Text oben? (oder /skip für keinen)")
-            else:  # face only
-                return await self._prompt_faces(q, sess)
+            if sess.action == "clean":
+                return await self._run_pipeline(q, sess, ctx)
+            # face only
+            return await self._prompt_faces(q, sess)
 
         if data.startswith("face:"):
             name = data.split(":", 1)[1]
@@ -189,7 +194,14 @@ class Handlers:
             temp_files.append(sess.media_path)
         try:
             current = sess.media_path
-            # 1) face swap (cloud) if requested — images only in v1
+            # 1) text removal (cloud) if requested — images only in v1
+            if sess.action in ("clean", "recaption"):
+                removed = await asyncio.to_thread(self.text_remover.remove_text, current)
+                local = self._tmp(".jpg")
+                temp_files.append(local)
+                await asyncio.to_thread(urllib.request.urlretrieve, removed, local)
+                current = local
+            # 2) face swap (cloud) if requested — images only in v1
             if sess.action in ("face", "both") and sess.chosen_face:
                 face_path = self.faces.get_path(
                     self._user_for_chat(chat_id), sess.chosen_face)
@@ -201,8 +213,8 @@ class Handlers:
                 temp_files.append(local)
                 await asyncio.to_thread(urllib.request.urlretrieve, swapped, local)
                 current = local
-            # 2) text overlay (local) if requested
-            if sess.action in ("text", "both") and (sess.top_text or sess.bottom_text):
+            # 3) text overlay (local) if requested
+            if sess.action in ("text", "both", "recaption") and (sess.top_text or sess.bottom_text):
                 out = self._tmp(".mp4" if sess.is_video else ".jpg")
                 temp_files.append(out)
                 if sess.is_video:
