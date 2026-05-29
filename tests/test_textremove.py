@@ -8,7 +8,7 @@ class FakeReplicate:
         self.calls.append((model, input))
         return self._output
 
-def test_remove_text_passes_model_image_and_prompt(tmp_path):
+def test_remove_text_passes_model_image_and_instruction(tmp_path):
     fake = FakeReplicate(output="https://result/clean.jpg")
     prov = ReplicateTextRemover(client=fake, model="owner/textrm", instruction="remove all the text")
     img = tmp_path / "in.jpg"; img.write_bytes(b"x")
@@ -17,7 +17,7 @@ def test_remove_text_passes_model_image_and_prompt(tmp_path):
 
     assert url == "https://result/clean.jpg"
     assert fake.calls[0][0] == "owner/textrm"
-    assert fake.calls[0][1]["prompt"] == "remove all the text"
+    assert fake.calls[0][1]["instruction"] == "remove all the text"
     assert "image" in fake.calls[0][1]
 
 def test_remove_text_list_output_returns_first(tmp_path):

@@ -11,8 +11,9 @@ class TextRemovalProvider(Protocol):
 class ReplicateTextRemover:
     """Remove text from an image via a text-guided Replicate model.
 
-    NOTE: input keys (`image` / `prompt`) depend on the chosen model. Verify the
+    NOTE: input keys (`image` / `instruction`) depend on the chosen model. Verify the
     current model's schema on replicate.com and adjust the `input={...}` dict if needed.
+    (adirik/inst-inpaint expects `image` + `instruction`.)
     """
 
     def __init__(self, client, model: str, instruction: str):
@@ -24,6 +25,6 @@ class ReplicateTextRemover:
         with open(image_path, "rb") as image:
             output = self._client.run(
                 self._model,
-                input={"image": image, "prompt": self._instruction},
+                input={"image": image, "instruction": self._instruction},
             )
         return first_url(output)
