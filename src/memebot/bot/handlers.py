@@ -29,16 +29,22 @@ def clearchat_ids(last_id: int, limit: int) -> list[int]:
 
 
 HELP_TEXT = (
-    "🤖 Du kannst Buttons nutzen oder Befehle:\n"
-    "• /text Oben | Unten — Text aufs Bild/Video\n"
+    "🤖 Meme Werkstatt\n\n"
+    "Schick mir ein Bild, Video oder GIF → wähl per Button.\n"
+    "Oder nutz Befehle (als Bildunterschrift oder als Nachricht zum zuletzt "
+    "gesendeten Bild):\n\n"
+    "✏️ Bearbeiten\n"
+    "• /text Oben | Unten — Meme-Text drauf (Bild/Video/GIF)\n"
     "• /face <Name> — Gesicht tauschen (Bild)\n"
-    "• /clean — Text entfernen (Bild)\n"
-    "• /recaption Oben | Unten — säubern + neu betexten (Bild)\n"
-    "• /gif <Begriff> — GIF von GIPHY suchen\n"
-    "• /meme — zufälliges Meme-GIF\n"
-    "• /clearchat — letzte ~100 Nachrichten löschen\n\n"
-    "Schick den Befehl als Bildunterschrift mit, oder als Nachricht zum "
-    "zuletzt gesendeten Bild."
+    "• /clean — Text aus Bild entfernen\n"
+    "• /recaption Oben | Unten — säubern + neu betexten\n\n"
+    "🎬 GIFs\n"
+    "• /gif <Begriff> — GIFs bei GIPHY suchen\n"
+    "• /meme — zufälliges Meme-GIF\n\n"
+    "🧹 Sonstiges\n"
+    "• /clearchat — Chat aufräumen (letzte ~100)\n"
+    "• /help — diese Übersicht\n\n"
+    "Tipp: „|\" trennt oben/unten · „/skip\" lässt eine Zeile frei."
 )
 
 

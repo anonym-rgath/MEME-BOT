@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 import replicate
+from telegram import BotCommand
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters,
 )
@@ -13,6 +14,46 @@ from memebot.bot.handlers import Handlers
 from memebot.giphy.client import GiphyClient
 
 log = logging.getLogger(__name__)
+
+# Shown in Telegram's "/" autocomplete + ☰ menu (set at startup; /skip omitted).
+BOT_COMMANDS = [
+    BotCommand("start", "Bot starten & Hilfe"),
+    BotCommand("help", "Alle Befehle anzeigen"),
+    BotCommand("text", "Text aufs Bild/Video/GIF: Oben | Unten"),
+    BotCommand("face", "Gesicht tauschen (Bild): /face Name"),
+    BotCommand("clean", "Text aus Bild entfernen"),
+    BotCommand("recaption", "Bild säubern + neu betexten"),
+    BotCommand("gif", "GIF suchen: /gif Begriff"),
+    BotCommand("meme", "Zufälliges Meme-GIF"),
+    BotCommand("clearchat", "Chat aufräumen (letzte ~100)"),
+]
+
+SHORT_DESCRIPTION = (
+    "Meme-Werkstatt: Text auf Bild/Video/GIF, Gesicht tauschen, "
+    "Text entfernen, GIFs suchen."
+)
+
+DESCRIPTION = (
+    "🎨 Deine private Meme-Werkstatt.\n\n"
+    "Schick mir ein Bild, Video oder GIF — den Rest machst du per Button oder Befehl:\n"
+    "• Text drauf (oben/unten)\n"
+    "• Gesicht tauschen\n"
+    "• Text entfernen / Vorlage säubern\n"
+    "• GIFs & Memes von GIPHY suchen\n\n"
+    "Tipp: /start oder /help zeigt alle Befehle."
+)
+
+
+async def _post_init(app: Application) -> None:
+    """Register command menu + bot descriptions with Telegram once at startup.
+    Best-effort: a Telegram hiccup here must not prevent the bot from running."""
+    try:
+        await app.bot.set_my_commands(BOT_COMMANDS)
+        await app.bot.set_my_short_description(SHORT_DESCRIPTION)
+        await app.bot.set_my_description(DESCRIPTION)
+        log.info("Registered bot commands + descriptions with Telegram.")
+    except Exception as exc:
+        log.warning("Could not set bot commands/description: %s", exc)
 
 
 def _pinned(client, ref: str) -> str:
@@ -56,7 +97,12 @@ def build_application(settings: Settings) -> Application:
         giphy=giphy,
     )
 
-    app = Application.builder().token(settings.telegram_bot_token).build()
+    app = (
+        Application.builder()
+        .token(settings.telegram_bot_token)
+        .post_init(_post_init)
+        .build()
+    )
     app.add_handler(CommandHandler("start", handlers.start))
     app.add_handler(CommandHandler("help", handlers.help))
     app.add_handler(CommandHandler("skip", handlers.on_text))
