@@ -39,6 +39,7 @@ caption or as a follow-up message to the last image you sent:
 - `/recaption Oben | Unten` — clean then add new text (image)
 - `/gif <term>` — search a GIF on GIPHY
 - `/meme` — random meme GIF
+- `/clearchat` — delete the last ~100 messages in the chat (yours + the bot's, ≤48h)
 - `/help` — show this list
 
 ## Tests
