@@ -40,6 +40,15 @@ class Handlers:
         os.close(fd)
         return path
 
+    def _discard_session_media(self, sess) -> None:
+        """Delete any on-disk temp files this session still holds (early-exit cleanup)."""
+        for path in (sess.media_path, sess.pending_face_path):
+            if path:
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
+
     # --- entry points -------------------------------------------------
     async def start(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if not self._allowed(update):
@@ -55,6 +64,10 @@ class Handlers:
         msg = update.message
         chat_id = msg.chat_id
         sess = self.store.get(chat_id)
+
+        # a new upload supersedes any half-finished flow — drop stale temp files
+        self._discard_session_media(sess)
+        sess.pending_face_path = None
 
         if msg.photo:
             tg_file = await msg.photo[-1].get_file()
@@ -90,6 +103,7 @@ class Handlers:
         data = q.data
 
         if data == "action:cancel":
+            self._discard_session_media(sess)
             self.store.clear(chat_id)
             return await q.edit_message_text("Abgebrochen.")
 
@@ -97,6 +111,7 @@ class Handlers:
             sess.action = data.split(":", 1)[1]
             # v1: video face swap is deferred — videos support text only.
             if sess.is_video and sess.action in ("face", "both"):
+                self._discard_session_media(sess)
                 self.store.clear(chat_id)
                 return await q.edit_message_text(
                     "🔁 Gesichtstausch für Videos kommt später. "
