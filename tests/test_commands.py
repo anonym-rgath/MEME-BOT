@@ -27,6 +27,13 @@ def test_text_empty_is_error():
     assert p.action == "text"
     assert p.error is not None
 
+def test_text_pipe_with_empty_sides_is_error():
+    p = parse_command("/text   |   ")
+    assert p.action == "text"
+    assert p.top is None
+    assert p.bottom is None
+    assert p.error is not None
+
 def test_face_with_name():
     p = parse_command("/face Robin")
     assert p.action == "face"
