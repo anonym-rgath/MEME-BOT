@@ -63,6 +63,7 @@ def build_application(settings: Settings) -> Application:
     app.add_handler(CommandHandler(["text", "face", "clean", "recaption"], handlers.on_command))
     app.add_handler(CommandHandler("gif", handlers.on_gif))
     app.add_handler(CommandHandler("meme", handlers.on_meme))
+    app.add_handler(CommandHandler("clearchat", handlers.on_clearchat))
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO, handlers.on_media))
     app.add_handler(CallbackQueryHandler(handlers.on_button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.on_text))

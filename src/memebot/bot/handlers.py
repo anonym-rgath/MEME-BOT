@@ -18,6 +18,16 @@ from memebot.bot.state import SessionStore
 from memebot.bot.keyboards import action_keyboard, faces_keyboard
 from memebot.bot.commands import parse_command
 
+CLEARCHAT_LIMIT = 100
+
+
+def clearchat_ids(last_id: int, limit: int) -> list[int]:
+    """Message IDs to attempt deleting: `last_id` down to (last_id - limit + 1),
+    clamped at 1. Newest first."""
+    lowest = max(1, last_id - limit + 1)
+    return list(range(last_id, lowest - 1, -1))
+
+
 HELP_TEXT = (
     "🤖 Du kannst Buttons nutzen oder Befehle:\n"
     "• /text Oben | Unten — Text aufs Bild/Video\n"
@@ -25,7 +35,8 @@ HELP_TEXT = (
     "• /clean — Text entfernen (Bild)\n"
     "• /recaption Oben | Unten — säubern + neu betexten (Bild)\n"
     "• /gif <Begriff> — GIF von GIPHY suchen\n"
-    "• /meme — zufälliges Meme-GIF\n\n"
+    "• /meme — zufälliges Meme-GIF\n"
+    "• /clearchat — letzte ~100 Nachrichten löschen\n\n"
     "Schick den Befehl als Bildunterschrift mit, oder als Nachricht zum "
     "zuletzt gesendeten Bild."
 )
@@ -168,6 +179,20 @@ class Handlers:
         if not url:
             return await msg.reply_text("🤷 Gerade kein Meme bekommen, versuch's nochmal.")
         await ctx.bot.send_animation(msg.chat_id, animation=url)
+
+    async def on_clearchat(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        if not self._allowed(update):
+            return
+        msg = update.message
+        deleted = 0
+        for mid in clearchat_ids(msg.message_id, CLEARCHAT_LIMIT):
+            try:
+                await ctx.bot.delete_message(msg.chat_id, mid)
+                deleted += 1
+            except Exception:
+                pass  # too old (>48h), already gone, or not deletable — skip
+        await ctx.bot.send_message(
+            msg.chat_id, f"🧹 Aufgeräumt ({deleted} Nachrichten gelöscht).")
 
     async def _run_command(self, chat_id, sess, parsed, ctx):
         if parsed.error:
