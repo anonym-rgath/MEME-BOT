@@ -10,8 +10,13 @@ class Settings:
     replicate_api_token: str
     image_model: str = "cdingram/face-swap"
     video_model: str = "arabyai-replicate/roop_face_swap"
-    text_removal_model: str = "adirik/inst-inpaint"
-    text_removal_prompt: str = "remove all the text"
+    text_removal_model: str = "black-forest-labs/flux-kontext-pro"
+    text_removal_prompt: str = (
+        "Remove all text, letters, captions and watermarks from the image. "
+        "Keep everything else exactly the same."
+    )
+    text_removal_image_key: str = "input_image"
+    text_removal_prompt_key: str = "prompt"
     max_video_seconds: int = 15
     max_file_mb: int = 20
     data_dir: str = "./data"
@@ -38,6 +43,8 @@ class Settings:
             video_model=env.get("REPLICATE_VIDEO_MODEL", cls.video_model),
             text_removal_model=env.get("REPLICATE_TEXT_REMOVAL_MODEL", cls.text_removal_model),
             text_removal_prompt=env.get("TEXT_REMOVAL_PROMPT", cls.text_removal_prompt),
+            text_removal_image_key=env.get("REPLICATE_TEXT_REMOVAL_IMAGE_KEY", cls.text_removal_image_key),
+            text_removal_prompt_key=env.get("REPLICATE_TEXT_REMOVAL_PROMPT_KEY", cls.text_removal_prompt_key),
             max_video_seconds=int(env.get("MAX_VIDEO_SECONDS", cls.max_video_seconds)),
             max_file_mb=int(env.get("MAX_FILE_MB", cls.max_file_mb)),
             data_dir=env.get("DATA_DIR", cls.data_dir),

@@ -43,6 +43,8 @@ def build_application(settings: Settings) -> Application:
         client=client,
         model=_pinned(client, settings.text_removal_model),
         instruction=settings.text_removal_prompt,
+        image_key=settings.text_removal_image_key,
+        prompt_key=settings.text_removal_prompt_key,
     )
     handlers = Handlers(
         settings=settings,

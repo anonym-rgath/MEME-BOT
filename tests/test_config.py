@@ -31,10 +31,16 @@ def test_is_allowed():
 def test_text_removal_defaults_and_override():
     base = {"TELEGRAM_BOT_TOKEN": "t", "REPLICATE_API_TOKEN": "r"}
     s = Settings.from_env(base)
-    assert s.text_removal_model == "adirik/inst-inpaint"
-    assert s.text_removal_prompt == "remove all the text"
+    assert s.text_removal_model == "black-forest-labs/flux-kontext-pro"
+    assert "text" in s.text_removal_prompt.lower()
+    assert s.text_removal_image_key == "input_image"
+    assert s.text_removal_prompt_key == "prompt"
     s2 = Settings.from_env({**base,
         "REPLICATE_TEXT_REMOVAL_MODEL": "owner/model",
-        "TEXT_REMOVAL_PROMPT": "erase text"})
+        "TEXT_REMOVAL_PROMPT": "erase text",
+        "REPLICATE_TEXT_REMOVAL_IMAGE_KEY": "image",
+        "REPLICATE_TEXT_REMOVAL_PROMPT_KEY": "instruction"})
     assert s2.text_removal_model == "owner/model"
     assert s2.text_removal_prompt == "erase text"
+    assert s2.text_removal_image_key == "image"
+    assert s2.text_removal_prompt_key == "instruction"
